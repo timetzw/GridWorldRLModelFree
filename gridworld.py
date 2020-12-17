@@ -6,7 +6,7 @@ class grid:
         self.reward = {}
         for i in range(row):
             for j in range(col):
-                self.reward[(i,j)] = 0
+                self.reward[(i,j)] = -1
         
         for t in reward:
             (row,col,val) = t
@@ -22,6 +22,48 @@ class grid:
             if state==s:
                 return True
         return False
+
+    def printWorld(self,start,goal):
+            print("╔",end="")
+            for j in range(self.col-1):
+                print("═══╦",sep="",end="")
+           
+            print("═══╗",end="")
+            for i in range(self.row-1):
+                print("\n║",end="")
+                for j in range(self.col):
+                    if (self.row - i-1,j) in self.obstacles:
+                        print("║║║║",sep="",end="")
+                    elif (self.row-i-1,j) == start:
+                        print(" ☺ ║",sep="",end="")
+                    elif (self.row-i-1,j) in goal:
+                        print(" ¤ ║",sep="",end="")    
+                    else:
+                        print("   ║",sep="",end="")
+                print("\n║",end="")
+                for j in range(self.col):
+                    print("═══║",sep="",end="")
+            print("\n║",end="")
+            for j in range(self.col):
+                    if (0,j) in self.obstacles:
+                            print("║║║║",sep="",end="")
+                    elif (0,j) == start:
+                        print(" ☺ ║",sep="",end="")
+                    elif (0,j) in goal:
+                        print(" ¤ ║",sep="",end="")    
+                    else:
+                        print("   ║",sep="",end="")
+            print("\n╚",end="")
+            for i in range(self.col-1):
+                print("═══╩",end="")
+            print("═══╝")
+
+    def printPolicySequence(self,start,goal,actionSequence):
+        self.printWorld(start,goal)
+        state = start
+        for a in actionSequence:
+            state=self.nextState(state,a)
+            self.printWorld(state,goal)
 
     def nextState(self, state, action):
         (row, col) = state
@@ -49,3 +91,7 @@ class grid:
                 return state
             else:
                 return (row, col)
+
+        
+
+             

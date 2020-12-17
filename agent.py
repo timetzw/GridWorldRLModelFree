@@ -3,7 +3,7 @@ from gridworld import grid
 
 
 class agent:
-    def __init__(self, start, actions, world, discount, learningRate, epsilon):
+    def __init__(self, start, actions, world, discount, learningRate, epsilon,lamb):
         self.actions = actions
         self.world = world
         self.qtable = {}
@@ -12,12 +12,13 @@ class agent:
             for j in range(world.col):
                 for a in self.actions:
                     self.qtable[(i, j, a)] = 0
-                    #self.eligibility[(i, j, a)] = 0 - implemented later for TD(lambda) backwards view
+                    self.eligibility[(i, j, a)] = 0
         self.start = start
         self.state = start
         self.discount = discount
         self.learningRate = learningRate
         self.epsilon = epsilon
+        self.lamb = lamb
 
     def chooseAction(self):
         if (np.random.uniform(0, 1) < self.epsilon):
@@ -39,9 +40,13 @@ class agent:
     def takeAction(self, action):
         nextState = self.world.nextState(self.state, action)
         nextAction = self.maxAction(nextState)
-        delta = (self.world.giveReward(nextState) + self.discount *
-                 self.qtable[nextState+(nextAction,)]) - self.qtable[self.state+(action,)]
-        self.qtable[self.state+(action,)] += self.learningRate*delta
+        delta = (self.world.giveReward(nextState) + self.discount *self.qtable[nextState+(nextAction,)]) - self.qtable[self.state+(action,)]
+        self.eligibility[self.state+(action,)]+=1
+        for i in range(self.world.row):
+            for j in range(self.world.col):
+                for a in self.actions:
+                    self.qtable[(i, j, a)] += self.learningRate * delta * self.eligibility[(i,j,a)]
+                    self.eligibility[(i, j, a)] = self.eligibility[(i, j, a)] * self.discount * self.lamb
         self.state = nextState
 
     def updateEpsilon(self,episode):
@@ -59,10 +64,19 @@ class agent:
                 action = self.chooseAction()
                 self.takeAction(action)
 
+    def getPolicySequence(self,start):
+        state = start
+        a = []
+        while(not(self.world.reachedEnd(state))):
+            action = self.maxAction(state)
+            a.append(action)
+            state = self.world.nextState(state, action)
+        return a
+
     def printQtable(self):
         print(self.qtable)
 
-    def policy(self, start):
+    def printPolicy(self, start):
         print("Policy from start")
         state = start
         while(not(self.world.reachedEnd(state))):
@@ -76,9 +90,9 @@ if __name__ == "__main__":
     start = (0,0)
     rows = 10
     cols = 10
-    obstacles = []
-    rewards = [(9,9,100)]
-    ends = [(9,9)]
+    obstacles = [(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(4,7),(6,2),(8,1),(4,2),(4,3),(7,5)]
+    rewards = [(9,0,100)]
+    ends = [(9,0),(9,9)]
 
     world = grid(rows, cols, obstacles, rewards,ends)
     
@@ -86,12 +100,12 @@ if __name__ == "__main__":
     discount = 0.9
     learningRate = 0.1
     epsilon = 0.2
-    numberOfEpisodes = 500
-    
-    a = agent(start,actions, world, discount, learningRate,epsilon)
+    numberOfEpisodes = 1000
+    lamb = 0
+    a = agent(start,actions, world, discount, learningRate,epsilon,lamb)
     
     a.play(numberOfEpisodes)
-    
-    a.printQtable()
-    a.policy(start)
+    #a.printQtable()
+    a.printPolicy(start)
+    world.printPolicySequence(start,world.end,a.getPolicySequence(start))
     
