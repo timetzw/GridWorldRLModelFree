@@ -24,13 +24,13 @@ class grid:
         return False
 
     def printWorld(self,start,goal):
-            print("╔",end="")
+            print("  ╔",end="")
             for j in range(self.col-1):
                 print("═══╦",sep="",end="")
            
             print("═══╗",end="")
             for i in range(self.row-1):
-                print("\n║",end="")
+                print("\n",self.row-1-i," ║",end="",sep="")
                 for j in range(self.col):
                     if (self.row - i-1,j) in self.obstacles:
                         print("║║║║",sep="",end="")
@@ -40,10 +40,10 @@ class grid:
                         print(" ¤ ║",sep="",end="")    
                     else:
                         print("   ║",sep="",end="")
-                print("\n║",end="")
+                print("\n  ║",end="")
                 for j in range(self.col):
                     print("═══║",sep="",end="")
-            print("\n║",end="")
+            print("\n",0," ║",end="",sep="")
             for j in range(self.col):
                     if (0,j) in self.obstacles:
                             print("║║║║",sep="",end="")
@@ -53,10 +53,14 @@ class grid:
                         print(" ¤ ║",sep="",end="")    
                     else:
                         print("   ║",sep="",end="")
-            print("\n╚",end="")
+            print("\n  ╚",end="")
             for i in range(self.col-1):
                 print("═══╩",end="")
             print("═══╝")
+            print("    ",end="")
+            for i in range(self.col):
+                print(i,"   ",end="",sep="")
+            print("\n")
 
     def printPolicySequence(self,start,goal,actionSequence):
         self.printWorld(start,goal)
