@@ -1,4 +1,4 @@
-# Model Free Reinforcement Learning for Agent in Grid World
+# Tabular Model Free Reinforcement Learning for Agent in Grid World
 Simple python implementation of TD(λ) Q learning for pathfinding in a grid world of any size with or without obstacles.
 
 Uses ε-greedy policy for behaviour and tries to learn about the optimal greedy policy.
