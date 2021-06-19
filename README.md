@@ -1,12 +1,11 @@
 # Tabular Model Free Reinforcement Learning for Agent in Grid World
 Simple python implementation of TD(λ) Q learning for pathfinding in a grid world of any size with or without obstacles.
 
-Uses ε-greedy policy for behaviour and tries to learn about the optimal greedy policy.
-
 ## How to use
-Run the agent.py script.
+Run the agent.py script and use the arguments below to construct the grid world and agent details.
 
 ### Arguments:
+```
 --rows : number of rows in grid world 
 
 --cols : number of coloumns in grid world
@@ -36,3 +35,5 @@ Run the agent.py script.
 --printPolicy : Choice of whether or not to print policy after simulated
 
 --printVisualisation : Choice of whether or not to print the visualisation of the policy in the world
+```
+
