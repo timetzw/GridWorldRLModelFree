@@ -3,7 +3,6 @@ import sys
 import argparse
 from gridworld import grid
 
-
 class agent:
     def __init__(self, start, actions, world, discount, learningRate, epsilon,lamb,adaptiveEpsilon):
         self.actions = actions
@@ -58,6 +57,7 @@ class agent:
     def play(self, episodes):
         currentEp = 1
         while currentEp <= episodes:
+            print('currEpisode:', currentEp)
             if self.adaptiveEpsilon:
                 self.updateEpsilon(currentEp)
 
@@ -67,13 +67,18 @@ class agent:
                 currentEp += 1
             else:
                 action = self.chooseAction()
+                print('take', action, ' in', self.state)
                 self.takeAction(action)
+                print('new state=', self.state)
 
     def getPolicySequence(self,start):
         state = start
         a = []
+        print('getPOlicySeq')
         while(not(self.world.reachedEnd(state))):
+            print(state)
             action = self.maxAction(state)
+            print(action)
             a.append(action)
             state = self.world.nextState(state, action)
         return a
@@ -107,12 +112,12 @@ def convertReward(s):
 if __name__ == "__main__":
     #Arguments for world and agent
     parser = argparse.ArgumentParser(description='Train an agent to find the optimal path in a grid world.')
-    parser.add_argument('--rows',"-y",default=10,type=int,help='Number of rows in the grid world e.g 10')
-    parser.add_argument('--cols',"-x",default=10,type=int,help='Number of coloumns in the grid world e.g 10')
+    parser.add_argument('--rows',"-y",default=5,type=int,help='Number of rows in the grid world e.g 10')
+    # parser.add_argument('--cols',"-x",default=10,type=int,help='Number of coloumns in the grid world e.g 10')
     parser.add_argument('--start',"-s",default=(0,0),type=convertPosition,help='Starting position of the agent in the grid world. Given as a tuple in the form of row,coloumn e.g -s 0,0')
     parser.add_argument('--obstacles',"-o",default=[],nargs='+',type=convertPosition,help='Obstacles present in the grid world. Given as a list of tuples in the form row,coloumn row,coloumn e.g -o 3,2 5,6')
-    parser.add_argument('--rewards',"-r",default=[(9,9,100)],nargs='+',type=convertReward,help='Rewards given for transition to a state. Given as a list of tuples in the form row,coloumn,reward row,coloumn,reward e.g -r 9,9,100 0,9,-100')
-    parser.add_argument('--ends',"-e",default=[(9,9)],nargs='+',type=convertPosition,help='Terminal states for the grid world i.e the win or loss states. Given as a list of tuples in the form row,coloumn row,coloumn e.g -e 9,9 0,9')
+    # parser.add_argument('--rewards',"-r",default=[(9,9,100)],nargs='+',type=convertReward,help='Rewards given for transition to a state. Given as a list of tuples in the form row,coloumn,reward row,coloumn,reward e.g -r 9,9,100 0,9,-100')
+    # parser.add_argument('--ends',"-e",default=[(9,9)],nargs='+',type=convertPosition,help='Terminal states for the grid world i.e the win or loss states. Given as a list of tuples in the form row,coloumn row,coloumn e.g -e 9,9 0,9')
     parser.add_argument('--actions',"-a",default=["u", "d", "l", "r"],nargs='+',type=str,help='List of actions that the agent can perform. Given as a list of chars where "u" = Up, "r" = Right, "l" = Left, "d" = Down. Only actions from these 4 can be selected. e.g -a u d l r')
     parser.add_argument('--discount',"-d",default=0.9,type=float,help='Discount factor for future rewards i.e how much weight does the agent take the future into account. e.g -d 0.9')
     parser.add_argument('--learningRate',"-l",default=0.1,type=float,help='Learning rate for the agent i.e how much does the agent take the learning error into account each step. e.g -l 0.1')
@@ -121,16 +126,17 @@ if __name__ == "__main__":
     parser.add_argument('--numberOfEpisodes',"-n",default=100,type=int,help='Number of episodes that the agent will play to learn optimal policy e.g 100')
     parser.add_argument('--lambdaValue',"-la",default=0.5,type=float,help='The lambda value for the agent i.e the weighting given to future steps in the sampled run e.g 0.5')
     parser.add_argument('--printPolicy',"-pp",default=False,action='store_true',help='Choice of whether or not to print policy after simulated e.g True')
-    parser.add_argument('--printVisualisation',"-pe",default=False,action='store_true',help='Choice of whether or not to print the visualisation of the policy in the world e.g True')
+    parser.add_argument('--printVisualisation',"-pe",default=True,action='store_true',help='Choice of whether or not to print the visualisation of the policy in the world e.g True')
     
     args = parser.parse_args()
     
     start = args.start
     rows = args.rows
-    cols = args.cols
+    cols = rows#args.cols
     obstacles = args.obstacles
-    rewards = args.rewards
-    ends = args.ends
+    rewards = [(rows-1,rows-1,100)]#args.rewards
+    ends = [(rows-1,rows-1)]
+    # ends = args.ends
 
     world = grid(rows, cols, obstacles, rewards,ends)
     
@@ -145,10 +151,12 @@ if __name__ == "__main__":
     a = agent(start,actions, world, discount, learningRate,epsilon,lamb,adaptiveEpsilon)
     
     a.play(numberOfEpisodes)
-    
+    # print('done playin')
     if args.printPolicy:
+        # print('printPolicy')
         a.printPolicy(start)
     if args.printVisualisation:
+        # print('printViz')
         world.printPolicySequence(start,world.end,a.getPolicySequence(start))
     
     
