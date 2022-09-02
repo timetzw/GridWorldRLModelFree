@@ -4,7 +4,8 @@ import argparse
 from gridworld import grid
 
 class agent:
-    def __init__(self, start, actions, world, discount, learningRate, epsilon,lamb,adaptiveEpsilon):
+    def __init__(self, start, actions, world, discount, learningRate, epsilon, lamb, adaptiveEpsilon, debug):
+        self.debug = debug
         self.actions = actions
         self.world = world
         self.qtable = {}
@@ -57,28 +58,35 @@ class agent:
     def play(self, episodes):
         currentEp = 1
         while currentEp <= episodes:
-            print('currEpisode:', currentEp)
+            if self.debug:
+                print('currEpisode:', currentEp)
             if self.adaptiveEpsilon:
                 self.updateEpsilon(currentEp)
 
             if self.world.reachedEnd(self.state):
                 self.state = self.start
-                print("Episode",currentEp,"Finished...",sep=" ")
+                if self.debug:
+                    print("Episode",currentEp,"Finished...",sep=" ")
                 currentEp += 1
             else:
                 action = self.chooseAction()
-                print('take', action, ' in', self.state)
+                if self.debug:
+                    print('take', action, ' in', self.state)
                 self.takeAction(action)
-                print('new state=', self.state)
+                if self.debug:
+                    print('new state=', self.state)
 
     def getPolicySequence(self,start):
         state = start
         a = []
-        print('getPOlicySeq')
+        if self.debug:
+            print('getPolicySeq')
         while(not(self.world.reachedEnd(state))):
-            print(state)
+            if self.debug:
+                print(state)
             action = self.maxAction(state)
-            print(action)
+            if self.debug:
+                print(action)
             a.append(action)
             state = self.world.nextState(state, action)
         return a
@@ -89,11 +97,20 @@ class agent:
     def printPolicy(self, start):
         print("Policy from start")
         state = start
+        pathLen=0
         while(not(self.world.reachedEnd(state))):
             action = self.maxAction(state)
             print(action, end=" -> ")
             state = self.world.nextState(state, action)
-        print("X")
+            pathLen+=1
+            if pathLen > 100:
+                break
+        if pathLen > 100:
+            print('Agent never reached the end')
+            print("Policy length = inf (agent never reached the end)", )
+        else:
+            print("X")
+            print("Policy length =", pathLen)
 
 def convertPosition(s):
     try:
@@ -109,7 +126,7 @@ def convertReward(s):
     except:
         raise argparse.ArgumentTypeError("arguments must be row,col,value")
 
-if __name__ == "__main__":
+def main(args):
     #Arguments for world and agent
     parser = argparse.ArgumentParser(description='Train an agent to find the optimal path in a grid world.')
     parser.add_argument('--rows',"-y",default=5,type=int,help='Number of rows in the grid world e.g 10')
@@ -123,13 +140,16 @@ if __name__ == "__main__":
     parser.add_argument('--learningRate',"-l",default=0.1,type=float,help='Learning rate for the agent i.e how much does the agent take the learning error into account each step. e.g -l 0.1')
     parser.add_argument('--epsilon',"-ep",default=0.2,type=float,help='Epsilon value for the epsilon greedy policy i.e how much does the agent try to explore. e.g -ep 0.2')
     parser.add_argument('--adaptiveEpsilon',"-ae",default=False,action='store_true',help='Choice to use Adaptive epsilon value i.e the exploratory nature of the agent decreases as the number of episodes played increases')
-    parser.add_argument('--numberOfEpisodes',"-n",default=100,type=int,help='Number of episodes that the agent will play to learn optimal policy e.g 100')
+    parser.add_argument('--numberOfEpisodes',"-n",default=200,type=int,help='Number of episodes that the agent will play to learn optimal policy e.g 100')
     parser.add_argument('--lambdaValue',"-la",default=0.5,type=float,help='The lambda value for the agent i.e the weighting given to future steps in the sampled run e.g 0.5')
-    parser.add_argument('--printPolicy',"-pp",default=False,action='store_true',help='Choice of whether or not to print policy after simulated e.g True')
-    parser.add_argument('--printVisualisation',"-pe",default=True,action='store_true',help='Choice of whether or not to print the visualisation of the policy in the world e.g True')
-    
-    args = parser.parse_args()
-    
+    parser.add_argument('--printPolicy',"-pp",default=True,action='store_true',help='Choice of whether or not to print policy after simulated e.g True')
+    parser.add_argument('--printVisualisation',"-pe",default=False,action='store_true',help='Choice of whether or not to print the visualisation of the policy in the world e.g True')
+    # parser.add_argument('--debug',"-db",default=False,action='store_true',help='Choice of whether or not to print states of variables and program checkpoints while program runs to assist debugging')
+    parser.add_argument('--debug',"-db",default=0,type=int,help='Choice of whether or not to print states of variables and program checkpoints while program runs to assist debugging')
+
+    # print('raw args:', args)
+    args = parser.parse_args(args)
+    debug = args.debug
     start = args.start
     rows = args.rows
     cols = rows#args.cols
@@ -147,8 +167,8 @@ if __name__ == "__main__":
     numberOfEpisodes = args.numberOfEpisodes
     lamb = args.lambdaValue
     adaptiveEpsilon = args.adaptiveEpsilon
-
-    a = agent(start,actions, world, discount, learningRate,epsilon,lamb,adaptiveEpsilon)
+    print('lr =', learningRate, 'ep =', epsilon, 'lamb =', lamb, 'epsilon =', epsilon)
+    a = agent(start,actions, world, discount, learningRate,epsilon,lamb,adaptiveEpsilon,debug)
     
     a.play(numberOfEpisodes)
     # print('done playin')
@@ -159,4 +179,6 @@ if __name__ == "__main__":
         # print('printViz')
         world.printPolicySequence(start,world.end,a.getPolicySequence(start))
     
-    
+if __name__ == "__main__":
+    print(sys.argv[1:])
+    main(sys.argv[1:])
